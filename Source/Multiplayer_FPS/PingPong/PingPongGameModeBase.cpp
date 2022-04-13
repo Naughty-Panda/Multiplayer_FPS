@@ -56,6 +56,7 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 		Player1 = Cast<APingPongPlayerController>(NewPlayer);
 		CurrentPlayer = Player1;
 		StartPosition = Player1Start;
+		Player1->OnBallMissed.BindUObject(this, &APingPongGameModeBase::OnBallMissed_Player1);
 		UE_LOG(LogTemp, Warning, TEXT("PingPong GameMode: Player 1 initialized!"));
 	}
 	else if (!Player2)
@@ -63,6 +64,7 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 		Player2 = Cast<APingPongPlayerController>(NewPlayer);
 		CurrentPlayer = Player2;
 		StartPosition = Player2Start;
+		Player2->OnBallMissed.BindUObject(this, &APingPongGameModeBase::OnBallMissed_Player2);
 		UE_LOG(LogTemp, Warning, TEXT("PingPong GameMode: Player 2 initialized!"));
 	}
 	else
@@ -90,4 +92,24 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 	}
 
 	UE_LOG(LogTemp, Error, TEXT("GameMode error: No StartPosition in PingPong GameMode!"));
+}
+
+void APingPongGameModeBase::OnBallMissed_Player1()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Player 1 missed the ball!"));
+
+	if (Player2)
+	{
+		Player2->AddPlayerScore();
+	}
+}
+
+void APingPongGameModeBase::OnBallMissed_Player2()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Player 2 missed the ball!"));
+
+	if (Player1)
+	{
+		Player1->AddPlayerScore();
+	}
 }

@@ -7,6 +7,8 @@
 #include "PingPongPlayerController.generated.h"
 
 class APingPongPlatform;
+class APingPongGoal;
+
 /**
  * 
  */
@@ -25,8 +27,24 @@ protected:
 	UPROPERTY()
 	APingPongPlatform* Platform;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TSubclassOf<APingPongGoal> GoalClass;
+
+	UPROPERTY()
+	APingPongGoal* Goal;
+
+private:
+	UPROPERTY(Replicated)
+	int32 PlayerScore = 0;
+
+public:
+	/** Missed ball delegate */
+	FSimpleDelegate OnBallMissed;
+
 public:
 	APingPongPlayerController();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
 	void SetStartTransform(const FTransform& NewTransform);
@@ -37,7 +55,15 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void SpawnPlatform(TSubclassOf<APingPongPlatform> NewPlatformClass);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void SpawnGoal(TSubclassOf<APingPongGoal> NewGoalClass);
+
 	virtual void SetupInputComponent() override;
+
+	void AddPlayerScore() { ++PlayerScore; }
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetPlayerScore() const { return PlayerScore; }
 
 protected:
 	UFUNCTION()
@@ -45,4 +71,7 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveRight(float AxisValue);
+
+	UFUNCTION(Server, Reliable)
+	void OnGoalBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
 };

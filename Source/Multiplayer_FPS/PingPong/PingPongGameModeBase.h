@@ -35,4 +35,11 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+protected:
+	UFUNCTION()
+	void OnBallMissed_Player1();
+
+	UFUNCTION()
+	void OnBallMissed_Player2();
 };

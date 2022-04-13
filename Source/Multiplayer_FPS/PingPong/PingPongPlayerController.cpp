@@ -1,12 +1,23 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PingPongPlayerController.h"
+
+#include "PingPongBall.h"
+#include "PingPongGoal.h"
 #include "PingPongPlatform.h"
+#include "Net/UnrealNetwork.h"
 
 APingPongPlayerController::APingPongPlayerController()
 {
 	//SetReplicates(true);
 	bReplicates = true;
+}
+
+void APingPongPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(APingPongPlayerController, PlayerScore, COND_OwnerOnly);
 }
 
 void APingPongPlayerController::SetStartTransform(const FTransform& NewTransform)
@@ -21,7 +32,13 @@ void APingPongPlayerController::Initialize_Implementation()
 		Platform->Destroy();
 	}
 
+	if (Goal)
+	{
+		Goal->Destroy();
+	}
+
 	SpawnPlatform(PlatformClass);
+	SpawnGoal(GoalClass);
 }
 
 bool APingPongPlayerController::Initialize_Validate()
@@ -43,6 +60,23 @@ void APingPongPlayerController::SpawnPlatform_Implementation(TSubclassOf<APingPo
 bool APingPongPlayerController::SpawnPlatform_Validate(TSubclassOf<APingPongPlatform> NewPlatformClass)
 {
 	return PlatformClass != nullptr;
+}
+
+void APingPongPlayerController::SpawnGoal_Implementation(TSubclassOf<APingPongGoal> NewGoalClass)
+{
+	Goal = GetWorld()->SpawnActor<APingPongGoal>(GoalClass);
+
+	if (Goal)
+	{
+		Goal->SetActorLocation(StartTransform.GetLocation());
+		Goal->SetActorRotation(StartTransform.GetRotation());
+		Goal->OnActorBeginOverlap.AddDynamic(this, &APingPongPlayerController::OnGoalBeginOverlap);
+	}
+}
+
+bool APingPongPlayerController::SpawnGoal_Validate(TSubclassOf<APingPongGoal> NewGoalClass)
+{
+	return GoalClass != nullptr;
 }
 
 void APingPongPlayerController::SetupInputComponent()
@@ -72,4 +106,13 @@ void APingPongPlayerController::Server_MoveRight_Implementation(float AxisValue)
 bool APingPongPlayerController::Server_MoveRight_Validate(float AxisValue)
 {
 	return Platform != nullptr;
+}
+
+void APingPongPlayerController::OnGoalBeginOverlap_Implementation(AActor* OverlappedActor, AActor* OtherActor)
+{
+	if (APingPongBall* Ball = Cast<APingPongBall>(OtherActor))
+	{
+		GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Controller: Goal registered!"));
+		OnBallMissed.Execute();
+	}
 }
