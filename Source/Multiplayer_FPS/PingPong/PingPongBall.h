@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Settings")
 	float MoveSpeed = 100.f;
 
+	UPROPERTY(ReplicatedUsing=BallCharge_OnRepNotify)
+	int32 BallCharge = 1;
+
 	UPROPERTY(Replicated)
 	uint8 bIsMoving:1;
 
@@ -49,6 +52,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void StopMove();
+
+	// Executes only on client
+	UFUNCTION(BlueprintNativeEvent)
+	void BallCharge_OnRepNotify();
+
+	UFUNCTION(BlueprintPure)
+	int32 GetBallCharge() const { return BallCharge; }
+	void ResetBallCharge() { BallCharge = 1; }
 
 protected:
 	UFUNCTION(Server, Reliable, WithValidation)
