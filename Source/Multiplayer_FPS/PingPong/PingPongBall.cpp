@@ -50,6 +50,7 @@ void APingPongBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APingPongBall, bIsMoving);
+	DOREPLIFETIME(APingPongBall, BallCharge);
 }
 
 void APingPongBall::StartMove()
@@ -60,6 +61,13 @@ void APingPongBall::StartMove()
 void APingPongBall::StopMove()
 {
 	Server_StopMove();
+}
+
+// Executes only on client
+void APingPongBall::BallCharge_OnRepNotify_Implementation()
+{
+	// Updates ball's charge widget in blueprints
+	UE_LOG(LogTemp, Warning, TEXT("%s called!"), *FString(__FUNCTION__));
 }
 
 void APingPongBall::Multicast_HitEffect_Implementation()
@@ -129,6 +137,13 @@ void APingPongBall::Server_Move_Implementation(float DeltaTime)
 
 		// Spawn VFX
 		Multicast_HitEffect();
+
+		// Add ball charge if necessary
+		if (HitResult.GetActor()->ActorHasTag(FName("AddCharge")))
+		{
+			++BallCharge;
+			UE_LOG(LogBall, Warning, TEXT("Current charge: %i"), BallCharge);
+		}
 
 		/*
 		UE_LOG(LogBall, Display, TEXT("Ball %s collided with %s"), *GetName(), *HitResult.GetActor()->GetName());

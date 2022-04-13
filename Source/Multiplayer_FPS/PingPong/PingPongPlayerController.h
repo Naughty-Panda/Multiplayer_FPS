@@ -9,6 +9,8 @@
 class APingPongPlatform;
 class APingPongGoal;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBallMissedDelegate, int32);
+
 /**
  * 
  */
@@ -39,7 +41,7 @@ private:
 
 public:
 	/** Missed ball delegate */
-	FSimpleDelegate OnBallMissed;
+	FOnBallMissedDelegate OnBallMissed;
 
 public:
 	APingPongPlayerController();
@@ -60,7 +62,7 @@ public:
 
 	virtual void SetupInputComponent() override;
 
-	void AddPlayerScore() { ++PlayerScore; }
+	void AddPlayerScore(int32 Value) { PlayerScore += Value; }
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetPlayerScore() const { return PlayerScore; }

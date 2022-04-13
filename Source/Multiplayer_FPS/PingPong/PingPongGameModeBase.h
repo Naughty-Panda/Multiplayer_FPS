@@ -8,6 +8,7 @@
 
 class APingPongPlayerController;
 class APlayerStart;
+class APingPongBall;
 
 /**
  * 
@@ -30,16 +31,23 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	APlayerStart* Player2Start = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<APingPongBall> DefaultBallClass;
+
+	UPROPERTY()
+	APingPongBall* Ball = nullptr;
+
 public:
 	APingPongGameModeBase();
 
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void StartPlay() override;
 
 protected:
 	UFUNCTION()
-	void OnBallMissed_Player1();
+	void OnBallMissed_Player1(int32 BallCharge);
 
 	UFUNCTION()
-	void OnBallMissed_Player2();
+	void OnBallMissed_Player2(int32 BallCharge);
 };

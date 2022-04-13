@@ -113,6 +113,7 @@ void APingPongPlayerController::OnGoalBeginOverlap_Implementation(AActor* Overla
 	if (APingPongBall* Ball = Cast<APingPongBall>(OtherActor))
 	{
 		GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, TEXT("Controller: Goal registered!"));
-		OnBallMissed.Execute();
+		const int32 BallCharge = Ball->GetBallCharge();
+		OnBallMissed.Broadcast(BallCharge);
 	}
 }

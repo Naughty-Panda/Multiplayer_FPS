@@ -2,6 +2,7 @@
 
 #include "PingPongGameModeBase.h"
 
+#include "PingPongBall.h"
 #include "PingPongPawn.h"
 #include "PingPongPlayerController.h"
 #include "GameFramework/PlayerStart.h"
@@ -56,7 +57,7 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 		Player1 = Cast<APingPongPlayerController>(NewPlayer);
 		CurrentPlayer = Player1;
 		StartPosition = Player1Start;
-		Player1->OnBallMissed.BindUObject(this, &APingPongGameModeBase::OnBallMissed_Player1);
+		Player1->OnBallMissed.AddUObject(this, &APingPongGameModeBase::OnBallMissed_Player1);
 		UE_LOG(LogTemp, Warning, TEXT("PingPong GameMode: Player 1 initialized!"));
 	}
 	else if (!Player2)
@@ -64,7 +65,7 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 		Player2 = Cast<APingPongPlayerController>(NewPlayer);
 		CurrentPlayer = Player2;
 		StartPosition = Player2Start;
-		Player2->OnBallMissed.BindUObject(this, &APingPongGameModeBase::OnBallMissed_Player2);
+		Player2->OnBallMissed.AddUObject(this, &APingPongGameModeBase::OnBallMissed_Player2);
 		UE_LOG(LogTemp, Warning, TEXT("PingPong GameMode: Player 2 initialized!"));
 	}
 	else
@@ -94,22 +95,46 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 	UE_LOG(LogTemp, Error, TEXT("GameMode error: No StartPosition in PingPong GameMode!"));
 }
 
-void APingPongGameModeBase::OnBallMissed_Player1()
+void APingPongGameModeBase::StartPlay()
+{
+	Super::StartPlay();
+
+	if (ensure(DefaultBallClass))
+	{
+		Ball = GetWorld()->SpawnActor<APingPongBall>(DefaultBallClass);
+
+		if (Ball)
+		{
+			Ball->SetActorLocation(FVector(0, 0, 140));
+			Ball->SetActorRotation(FRotator(0, 55, 0));
+			Ball->StartMove();
+		}
+	}
+	else
+	{
+		UE_LOG(LogGameMode, Error, TEXT("Error: Incorrect Default Ball Class!"));
+		ReturnToMainMenuHost();
+	}
+}
+
+void APingPongGameModeBase::OnBallMissed_Player1(int32 BallCharge)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Player 1 missed the ball!"));
 
 	if (Player2)
 	{
-		Player2->AddPlayerScore();
+		Player2->AddPlayerScore(BallCharge);
+		Ball->ResetBallCharge();
 	}
 }
 
-void APingPongGameModeBase::OnBallMissed_Player2()
+void APingPongGameModeBase::OnBallMissed_Player2(int32 BallCharge)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Player 2 missed the ball!"));
 
 	if (Player1)
 	{
-		Player1->AddPlayerScore();
+		Player1->AddPlayerScore(BallCharge);
+		Ball->ResetBallCharge();
 	}
 }
