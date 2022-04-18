@@ -86,6 +86,16 @@ void APingPongPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("Move", this, &APingPongPlayerController::MoveRight);
 }
 
+void APingPongPlayerController::Client_OnOtherPlayerDisconnected_Implementation()
+{
+	EventOnOtherPlayerDisconnected();
+}
+
+void APingPongPlayerController::OnOtherPlayerDisconnected()
+{
+	Client_OnOtherPlayerDisconnected();
+}
+
 void APingPongPlayerController::MoveRight(float AxisValue)
 {
 	if (AxisValue == 0.f)

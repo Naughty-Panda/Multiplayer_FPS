@@ -52,9 +52,15 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 	APingPongPlayerController* CurrentPlayer = nullptr;
 	APlayerStart* StartPosition = nullptr;
 
+	APingPongPlayerController* NewPlayerController = Cast<APingPongPlayerController>(NewPlayer);
+	if (!NewPlayerController)
+	{
+		return;
+	}
+
 	if (!Player1)
 	{
-		Player1 = Cast<APingPongPlayerController>(NewPlayer);
+		Player1 = NewPlayerController;
 		CurrentPlayer = Player1;
 		StartPosition = Player1Start;
 		Player1->OnBallMissed.AddUObject(this, &APingPongGameModeBase::OnBallMissed_Player1);
@@ -62,7 +68,7 @@ void APingPongGameModeBase::PostLogin(APlayerController* NewPlayer)
 	}
 	else if (!Player2)
 	{
-		Player2 = Cast<APingPongPlayerController>(NewPlayer);
+		Player2 = NewPlayerController;
 		CurrentPlayer = Player2;
 		StartPosition = Player2Start;
 		Player2->OnBallMissed.AddUObject(this, &APingPongGameModeBase::OnBallMissed_Player2);
@@ -115,6 +121,44 @@ void APingPongGameModeBase::StartPlay()
 		UE_LOG(LogGameMode, Error, TEXT("Error: Incorrect Default Ball Class!"));
 		ReturnToMainMenuHost();
 	}
+}
+
+void APingPongGameModeBase::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	const APingPongPlayerController* ExitingController = Cast<APingPongPlayerController>(Exiting);
+
+	if (ExitingController == Player1)
+	{
+		Player1 = nullptr;
+
+		if (Player2)
+		{
+			Player2->OnOtherPlayerDisconnected();
+		}
+	}
+	else if (ExitingController == Player2)
+	{
+		Player2 = nullptr;
+
+		if (Player1)
+		{
+			Player1->OnOtherPlayerDisconnected();
+		}
+	}
+	else
+	{
+		return;
+	}
+
+	if (Ball)
+	{
+		Ball->StopMove();
+		Ball->Reset();
+	}
+
+	UE_LOG(LogGameMode, Warning, TEXT("Controller %s removed!"), *ExitingController->GetName());
 }
 
 void APingPongGameModeBase::OnBallMissed_Player1(int32 BallCharge)
