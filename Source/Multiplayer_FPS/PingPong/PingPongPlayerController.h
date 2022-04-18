@@ -67,12 +67,21 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetPlayerScore() const { return PlayerScore; }
 
+	UFUNCTION()
+	void OnOtherPlayerDisconnected();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void EventOnOtherPlayerDisconnected();
+
 protected:
 	UFUNCTION()
 	void MoveRight(float AxisValue);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveRight(float AxisValue);
+
+	UFUNCTION(Client, Reliable)
+	void Client_OnOtherPlayerDisconnected();
 
 	UFUNCTION(Server, Reliable)
 	void OnGoalBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
