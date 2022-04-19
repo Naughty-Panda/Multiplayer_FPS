@@ -2,9 +2,11 @@
 
 #include "PingPongBall.h"
 #include "Components/SphereComponent.h"
+#include "Engine/AssetManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/StreamableManager.h"
 
 DECLARE_LOG_CATEGORY_CLASS(LogBall, Display, Display);
 
@@ -32,6 +34,10 @@ APingPongBall::APingPongBall()
 void APingPongBall::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Apply loaded static mesh
+	BallMesh->SetStaticMesh(LoadBallMesh());
+	BallMesh->SetMaterial(0, LoadBallMaterial());
 }
 
 // Called every frame
@@ -61,6 +67,36 @@ void APingPongBall::StartMove()
 void APingPongBall::StopMove()
 {
 	Server_StopMove();
+}
+
+UStaticMesh* APingPongBall::LoadBallMesh()
+{
+	if (BallMeshRef.IsPending())
+	{
+		const FSoftObjectPath& AssetRef = BallMeshRef.ToSoftObjectPath();
+
+		FStreamableManager& StreamableManager = UAssetManager::Get().GetStreamableManager();
+		BallMeshRef = Cast<UStaticMesh>(StreamableManager.LoadSynchronous(AssetRef));
+
+		return BallMeshRef.Get();
+	}
+
+	return nullptr;
+}
+
+UMaterialInterface* APingPongBall::LoadBallMaterial()
+{
+	if (BallMaterialRef.IsPending())
+	{
+		const FSoftObjectPath& AssetRef = BallMaterialRef.ToSoftObjectPath();
+
+		FStreamableManager& StreamableManager = UAssetManager::Get().GetStreamableManager();
+		BallMaterialRef = Cast<UStaticMesh>(StreamableManager.LoadSynchronous(AssetRef));
+
+		return BallMaterialRef.Get();
+	}
+
+	return nullptr;
 }
 
 // Executes only on client
