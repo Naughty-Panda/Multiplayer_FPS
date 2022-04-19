@@ -20,6 +20,12 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category="Components")
 	UStaticMeshComponent* BallMesh;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Components")
+	TSoftObjectPtr<UStaticMesh> BallMeshRef;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Components")
+	TSoftObjectPtr<UMaterialInterface> BallMaterialRef;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Settings")
 	UParticleSystem* HitEffect;
 
@@ -59,9 +65,14 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	int32 GetBallCharge() const { return BallCharge; }
+
 	void ResetBallCharge() { BallCharge = 1; }
 
 protected:
+	// Synchronous load mesh and material
+	UStaticMesh* LoadBallMesh();
+	UMaterialInterface* LoadBallMaterial();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Move(float DeltaTime);
 
