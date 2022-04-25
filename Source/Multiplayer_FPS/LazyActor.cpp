@@ -42,11 +42,20 @@ void ALazyActor::LoadMesh()
 		// LazyMesh->SetStaticMesh(LazyMeshRef.LoadSynchronous());
 
 		// But anyway...
+
+		UE_LOG(LogActor, Warning, TEXT("LazyMeshRef is pending..."));
+
 		if (UStaticMesh* NewMesh = LoadObject<UStaticMesh>(this, *LazyMeshRef.ToString()))
 		{
 			UE_LOG(LogActor, Warning, TEXT("Mesh loaded!"));
 			LazyMesh->SetStaticMesh(NewMesh);
 		}
+	}
+	else
+	{
+		UE_LOG(LogActor, Warning, TEXT("LazyMeshRef is not pending..."));
+
+		LazyMesh->SetStaticMesh(LazyMeshRef.Get());
 	}
 }
 
