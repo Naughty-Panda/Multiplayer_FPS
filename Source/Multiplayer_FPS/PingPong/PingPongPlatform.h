@@ -7,6 +7,7 @@
 #include "PingPongPlatform.generated.h"
 
 class UBoxComponent;
+struct FStreamableHandle;
 
 UCLASS()
 class MULTIPLAYER_FPS_API APingPongPlatform : public AActor
@@ -19,6 +20,11 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category="Components")
 	UStaticMeshComponent* PlatformMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TSoftObjectPtr<UStaticMesh> PlatformMeshRef;
+
+	TSharedPtr<FStreamableHandle> AssetHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MoveSpeed = 100.f;
@@ -38,4 +44,8 @@ public:
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveRight(float AxisValue);
+
+	UFUNCTION(BlueprintCallable, CallInEditor)
+	void LoadPlatformMesh();
+	void OnPlatformMeshLoaded();
 };
