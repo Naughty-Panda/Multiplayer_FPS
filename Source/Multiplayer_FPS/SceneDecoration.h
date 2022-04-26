@@ -6,6 +6,8 @@
 
 #include "SceneDecoration.generated.h"
 
+struct FStreamableHandle;
+
 UCLASS()
 class MULTIPLAYER_FPS_API ASceneDecoration : public AActor
 {
@@ -19,6 +21,8 @@ private:
 	UPROPERTY()
 	UStaticMeshComponent* DecorationMesh;
 
+	TSharedPtr<FStreamableHandle> AssetHandle;
+
 public:
 	// Sets default values for this actor's properties
 	ASceneDecoration();
@@ -29,15 +33,11 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void LoadResources();
+	void LoadResourcesSynchronous();
+
+	UFUNCTION(BlueprintCallable)
+	void LoadResourcesAsync();
 
 private:
-	UFUNCTION(Client, Reliable)
-	void Client_LoadResources();
-
-	UFUNCTION(Server, Reliable)
-	void Server_LoadResources();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_LoadResources();
+	void OnResourcesLoaded();
 };
