@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SceneDecoration.h"
+#include "Engine/AssetManager.h"
+#include "Engine/StreamableManager.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -14,6 +16,7 @@ ASceneDecoration::ASceneDecoration()
 
 	DecorationMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Decoration Mesh"));
 	DecorationMesh->SetupAttachment(RootComponent);
+	DecorationMesh->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -22,22 +25,33 @@ void ASceneDecoration::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ASceneDecoration::LoadResources()
-{
-	Multicast_LoadResources();
-}
-
-void ASceneDecoration::Client_LoadResources_Implementation()
+/**
+ * Synchronous loading
+ */
+void ASceneDecoration::LoadResourcesSynchronous()
 {
 	DecorationMesh->SetStaticMesh(DecorationMeshRef.IsPending() ? DecorationMeshRef.LoadSynchronous() : DecorationMeshRef.Get());
 }
 
-void ASceneDecoration::Multicast_LoadResources_Implementation()
+/**
+ * Asynchronous loading
+ */
+void ASceneDecoration::LoadResourcesAsync()
 {
-	DecorationMesh->SetStaticMesh(DecorationMeshRef.IsPending() ? DecorationMeshRef.LoadSynchronous() : DecorationMeshRef.Get());
+	FStreamableDelegate LoadMeshDelegate;
+	LoadMeshDelegate.BindUObject(this, &ASceneDecoration::OnResourcesLoaded);
+
+	UAssetManager& AssetManager = UAssetManager::Get();
+	FStreamableManager& StreamableManager = AssetManager.GetStreamableManager();
+
+	AssetHandle = StreamableManager.RequestAsyncLoad(DecorationMeshRef.ToSoftObjectPath(), LoadMeshDelegate);
 }
 
-void ASceneDecoration::Server_LoadResources_Implementation()
+// Called when asset is loaded
+void ASceneDecoration::OnResourcesLoaded()
 {
-	DecorationMesh->SetStaticMesh(DecorationMeshRef.IsPending() ? DecorationMeshRef.LoadSynchronous() : DecorationMeshRef.Get());
+	if (UStaticMesh* LoadedMesh = Cast<UStaticMesh>(AssetHandle.Get()->GetLoadedAsset()))
+	{
+		DecorationMesh->SetStaticMesh(LoadedMesh);
+	}
 }

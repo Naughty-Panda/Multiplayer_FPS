@@ -34,7 +34,8 @@ void ASceneDecorationManager::BeginPlay()
 		{
 			if (auto* Decoration = Cast<ASceneDecoration>(Actor))
 			{
-				Decoration->LoadResources();
+				//Decoration->LoadResourcesSynchronous();
+				Decoration->LoadResourcesAsync();
 			}
 		}
 	}
